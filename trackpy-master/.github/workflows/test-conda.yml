@@ -44,4 +44,4 @@ jobs:
         shell: bash -el {0}  # Reads .profile so conda will work
         run: |
           conda activate test
-          pytest trackpy
+          pytest trackcupy

@@ -51,4 +51,4 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          pytest trackpy
+          pytest trackcupy

@@ -1,152 +1,54 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+*.py[co]
 
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
+# Packages
 *.egg
-MANIFEST
-
-# PyInstaller
-#  Usually these files are written by a python script across different platforms
-*.manifest
-*.spec
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
 
 # Installer logs
 pip-log.txt
-pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
 .coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+.tox
 
-# Translations
+#Translations
 *.mo
-*.pot
 
-# Django stuff:
+#Mr Developer
+.mr.developer.cfg
+
+*.pro
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+*.pyc
+*.so
+*~
+*.swp
 
-# Flask stuff:
-instance/
-.webassets-cache
+MANIFEST
+trackcupy/version.py
+examples/.ipynb_checkpoints
+examples/feature_log*
+doc/_build
+doc/generated
+doc/tutorial/*.html
+doc/tutorial/*.rst
+doc/tutorial/*_files
+.idea
+doc/examples/index.rst
+soft-matter-docs-deploy
 
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyCharm
-.idea/
-
-# Pyenv
-.python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or even
-#   fail to install them.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   poetry.lock
-
-# pdm
-#   Similar to Piepfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-
-# runtime package
-.pdm-python
-.pdm-build/
-
-# layouts
-.pdm-plugins/
-
-# celery staticfiles
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
+# VS Code
+.vscode
 .venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Agent specific
-.agent/
-.gemini/
+.venv-*
+benchmarks/results/*
+!benchmarks/results/.gitkeep

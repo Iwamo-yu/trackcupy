@@ -1,0 +1,3 @@
+scenario,shape,count,diameter,noise_level,seed,engine,status,cold_ms,steady_mean_ms,steady_min_ms,steady_max_ms,steady_std_ms,features,speedup_vs_python,speedup_vs_numba
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,numba,ok,968.0546360323206,9.952545200940222,9.464758972171694,10.680325038265437,0.4756487087884946,23,,1.0
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,cupy,ok,811.1738269799389,8.352607605047524,8.269352023489773,8.407371991779655,0.047491092612981935,22,,1.1915494743133686

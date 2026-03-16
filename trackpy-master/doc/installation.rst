@@ -15,7 +15,7 @@ To get started with Python on any platform, download and install
 `Anaconda <https://www.anaconda.com/distribution/>`_. It comes with the
 common scientific Python packages built in.
 
-2. Install trackpy
+2. Install trackcupy
 """"""""""""""""""
 
 Open a command prompt. On Windows, you can use the "Anaconda Command Prompt"
@@ -25,12 +25,12 @@ for Applications > Utilities > Terminal. Type these commands:
 .. code-block:: bash
 
    conda update conda
-   conda install -c conda-forge trackpy
+   conda install -c conda-forge trackcupy
    conda install -c conda-forge pims
 
-The above installs trackpy and all its requirements, plus the recommended
+The above installs trackcupy and all its requirements, plus the recommended
 `PIMS <http://soft-matter.github.io/pims/>`_ package that simplifies image-reading,
-and that is used in the trackpy tutorials.
+and that is used in the trackcupy tutorials.
 
 3. Try it out!
 """"""""""""""
@@ -49,7 +49,7 @@ To get started, check out the links to tutorials at the top of this document.
 Updating Your Installation
 """"""""""""""""""""""""""
 
-Before updating to a new version of trackpy, be sure to read the
+Before updating to a new version of trackcupy, be sure to read the
 :doc:`release notes<whatsnew>` for a list of new features and any changes
 that may affect your existing analysis code.
 
@@ -61,7 +61,7 @@ run this in the command prompt:
 
 .. code-block:: bash
 
-    conda update -c conda-forge trackpy
+    conda update -c conda-forge trackcupy
 
 Latest Version Under Development
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,11 +73,11 @@ stable version is released. Code in this branch has already been thoroughly
 tested. 
 
 You can easily install a recent build by downloading the source from
-`GitHub <https://github.com/soft-matter/trackpy>`_:
+`GitHub <https://github.com/soft-matter/trackcupy>`_:
 
 .. code-block:: bash
 
-    pip install https://github.com/soft-matter/trackpy/archive/master.zip
+    pip install https://github.com/soft-matter/trackcupy/archive/master.zip
 
 If you plan to edit the code yourself, you should use git and pip as
 explained below.
@@ -86,12 +86,12 @@ Using environments
 """"""""""""""""""
 
 Some users often like to separate Python instances into environments, so that
-each project can have its own set of packages. Create a trackpy-dedicated
+each project can have its own set of packages. Create a trackcupy-dedicated
 environment with the name softmatter as follows:
 
 .. code-block:: bash
 
-    conda create --name softmatter trackpy nb_conda
+    conda create --name softmatter trackcupy nb_conda
 
 The `nb_conda` is optional, but we added it to ensure that Jupyter sees this
 environment as well. You can switch to the environment from within Jupyter in
@@ -112,15 +112,15 @@ More Information for Experienced Python Users
 Archlinux
 """""""""
 
-Package is available for Archlinux on AUR: `Python 3 <https://aur.archlinux.org/packages/python-trackpy/>`__
+Package is available for Archlinux on AUR: `Python 3 <https://aur.archlinux.org/packages/python-trackcupy/>`__
 
 pip
 """
 
-We strongly recommend using conda to install trackpy, as described above,
+We strongly recommend using conda to install trackcupy, as described above,
 but pip is also supported. In general, you can use the latest version of each dependency.
-If you wish to override trackpy's minimum version requirements, you may find that 
-trackpy still runs your analysis code with older versions of dependencies.
+If you wish to override trackcupy's minimum version requirements, you may find that 
+trackcupy still runs your analysis code with older versions of dependencies.
 
 Essential Dependencies:
 
@@ -134,7 +134,7 @@ Essential Dependencies:
 * `looseversion <https://pypi.org/project/looseversion/>`__
 
 You will also want to install the `pims <http://soft-matter.github.io/pims/>`_
-package that simplifies image-reading, and that is used in the trackpy tutorials.
+package that simplifies image-reading, and that is used in the trackcupy tutorials.
 The remaining optional dependencies, listed below, are strongly recommended but
 can be challenging to install yourself, hence our recommendation that you
 use `Anaconda <https://www.anaconda.com/distribution/>`_.
@@ -149,23 +149,23 @@ source code, then:
 
 .. code-block:: bash
 
-   git clone https://github.com/soft-matter/trackpy
-   cd trackpy
+   git clone https://github.com/soft-matter/trackcupy
+   cd trackcupy
    python setup.py develop
 
-We welcome any contribution to the trackpy source code, so feel free to send
+We welcome any contribution to the trackcupy source code, so feel free to send
 in your contributions on Github! To do so, make an account, fork
-`trackpy <https://github.com/soft-matter/trackpy>`__ and create a local copy
+`trackcupy <https://github.com/soft-matter/trackcupy>`__ and create a local copy
 using:
 
 .. code-block:: bash
 
-   git clone https://github.com/<your_account>/trackpy
+   git clone https://github.com/<your_account>/trackcupy
 
 Now you have a local copy of the code which you can edit, but don't start
 editing right away as you are currently on the ``master`` branch. We think it
 is good practice to keep your ``master`` branch mirroring the upstream
-trackpy version, so first create a new branch and push it to the remote as
+trackcupy version, so first create a new branch and push it to the remote as
 follows:
 
 .. code-block:: bash
@@ -177,17 +177,17 @@ Now you can edit your code in any way you like, commit your changes, and push
 them again to the remote.
 
 Before sending in your code, please consult
-`our guidelines <https://github.com/soft-matter/trackpy/wiki/Information-for-contributors>`__.
+`our guidelines <https://github.com/soft-matter/trackcupy/wiki/Information-for-contributors>`__.
 Also, see `here <https://git-scm.com/book/en/v1/Getting-Started>`__ for getting
 started using git.
 
 Optional Dependencies
 """""""""""""""""""""
 
-These are strongly recommended to make using trackpy more convenient and faster:
+These are strongly recommended to make using trackcupy more convenient and faster:
 
 * The `PIMS <http://soft-matter.github.io/pims/>`_ package simplifies image-reading,
-      and is used in the trackpy tutorials.
+      and is used in the trackcupy tutorials.
 * `PyTables <http://www.pytables.org/moin>`__ for saving results in an HDF5 file. 
       This is included with Anaconda.
 * `numba <http://numba.pydata.org/>`__ for accelerated feature-finding and linking. 

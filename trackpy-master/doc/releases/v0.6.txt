@@ -1,12 +1,12 @@
 v0.6.4
 ------
 
-trackpy v0.6.4 is a minor compatibility update for numpy v2.0
+trackcupy v0.6.4 is a minor compatibility update for numpy v2.0
 
 Dependencies
 ~~~~~~~~~~~~
 - Adds support for numpy 2.0 (@nkeim, #770). Note that as of this writing,
-  pytables (an optional dependency for trackpy) does not yet support
+  pytables (an optional dependency for trackcupy) does not yet support
   numpy 2.0 (see https://github.com/PyTables/PyTables/issues/1172 and 
   #768).
 
@@ -14,7 +14,7 @@ Dependencies
 v0.6.3
 ------
 
-trackpy v0.6.3 is a minor compatibility update for newer Pandas verisons.
+trackcupy v0.6.3 is a minor compatibility update for newer Pandas verisons.
 
 Dependencies
 ~~~~~~~~~~~~
@@ -25,7 +25,7 @@ Dependencies
 v0.6.2
 ------
 
-trackpy v0.6.2 includes bug fixes, and compatibility fixes with newer
+trackcupy v0.6.2 includes bug fixes, and compatibility fixes with newer
 dependency versions.
 
 A special thanks to everyone who reported the issues fixed in this release!
@@ -48,8 +48,8 @@ Dependencies
 v0.6.1
 ------
 
-trackpy v0.6.1 is functionally equivalent to v0.6.0. It is being released
-to fix an issue with Zenodo, so that this trackpy release has a citable DOI.
+trackcupy v0.6.1 is functionally equivalent to v0.6.0. It is being released
+to fix an issue with Zenodo, so that this trackcupy release has a citable DOI.
 
 v0.6.0
 ------
@@ -80,7 +80,7 @@ API Changes
   when creating the predictor, you do not have to supply it when subsequently
   using the link_df() or link_df_iter() methods to link your features.
   (@nkeim, #710)
-- ``reconnect_traj_patch()`` is now available as ``trackpy.reconnect_traj_patch``
+- ``reconnect_traj_patch()`` is now available as ``trackcupy.reconnect_traj_patch``
   and is described in the API documentation. (@nkeim, #648)
 
 Bug Fixes
@@ -95,8 +95,8 @@ Bug Fixes
 Dependencies
 ~~~~~~~~~~~~
 
-- trackpy is now being tested in conda environments with Python 3.10.
-- trackpy is no longer tested with Python 3.6.
-- trackpy now requires the ``looseversion`` package to work with newer scipy
+- trackcupy is now being tested in conda environments with Python 3.10.
+- trackcupy is no longer tested with Python 3.6.
+- trackcupy now requires the ``looseversion`` package to work with newer scipy
   (@crisp-snakey, #706)
 - Much work on testing and packaging infrastructure by @tacaswell and @caspervdw

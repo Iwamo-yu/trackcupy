@@ -23,8 +23,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import trackpy as tp
-from trackpy.artificial import draw_spots, gen_nonoverlapping_locations
+import trackcupy as tp
+from trackcupy.artificial import draw_spots, gen_nonoverlapping_locations
 
 
 DEFAULT_ENGINES = ("python", "numba", "cupy")
@@ -325,7 +325,7 @@ def collect_environment_info():
         "python_executable": sys.executable,
         "python_version": sys.version.split()[0],
         "platform": platform.platform(),
-        "trackpy_version": getattr(tp, "__version__", "unknown"),
+        "trackcupy_version": getattr(tp, "__version__", "unknown"),
         "numpy_version": _module_version("numpy"),
         "pandas_version": _module_version("pandas"),
         "scipy_version": _module_version("scipy"),
@@ -376,7 +376,7 @@ def render_markdown_report(
         "python_executable",
         "python_version",
         "platform",
-        "trackpy_version",
+        "trackcupy_version",
         "numpy_version",
         "pandas_version",
         "scipy_version",
@@ -454,7 +454,7 @@ def _run_locate_in_subprocess(image, diameter, engine):
         import sys
         import time
         import numpy as np
-        import trackpy as tp
+        import trackcupy as tp
 
         image = np.load(sys.argv[1])
         diameter = tuple(json.loads(sys.argv[2]))

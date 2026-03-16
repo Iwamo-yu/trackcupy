@@ -1,0 +1,3 @@
+scenario,ref_engine,engine,status,ref_features,target_features,matched,match_ratio_ref,rmse_xyz,mae_z,mae_y,mae_x,mass_mare,signal_mare,raw_mass_mare,size_mare,size_z_mare,size_y_mare,size_x_mare
+smoke_iso,python,python,ok,23,23.0,23.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+smoke_iso,python,cupy,ERROR: ImportError: CuPy is required for trackcupy.locate(engine='cupy').,23,,,,,,,,,,,,,,

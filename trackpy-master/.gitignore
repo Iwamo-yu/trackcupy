@@ -34,7 +34,7 @@ pip-log.txt
 *.swp
 
 MANIFEST
-trackpy/version.py
+trackcupy/version.py
 examples/.ipynb_checkpoints
 examples/feature_log*
 doc/_build
@@ -49,6 +49,6 @@ soft-matter-docs-deploy
 # VS Code
 .vscode
 .venv
-.venv-linux
+.venv-*
 benchmarks/results/*
 !benchmarks/results/.gitkeep

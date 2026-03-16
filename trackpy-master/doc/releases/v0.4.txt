@@ -10,16 +10,16 @@ tutorials, and compatibility with the latest version of Pandas (0.25.1).
 API Changes
 ~~~~~~~~~~~
 
-- "trackpy.locate" and associated functions now report "ep" to be NaN when
+- "trackcupy.locate" and associated functions now report "ep" to be NaN when
   there is only one usable background pixel to sample. (:issue:`519`)
 
-- "trackpy.legacy.linking.link_df" does not copy a DataFrame automatically
+- "trackcupy.legacy.linking.link_df" does not copy a DataFrame automatically
   anymore if the provided DataFrame is a view. (:issue:`503`)
 
-- The "locate" options in "trackpy.batch" are now collected in "**kwargs"
-  (except for "diameter") and passed to the wrapped "trackpy.locate" function.
-  This means when using the "meta" option of "trackpy.batch" only explicitly
-  given options for the wrapped "trackpy.locate" are saved to the file;
+- The "locate" options in "trackcupy.batch" are now collected in "**kwargs"
+  (except for "diameter") and passed to the wrapped "trackcupy.locate" function.
+  This means when using the "meta" option of "trackcupy.batch" only explicitly
+  given options for the wrapped "trackcupy.locate" are saved to the file;
   unspecified options using default values from "locate" aren't saved.
   (:issue:`499`)
 
@@ -27,21 +27,21 @@ API Changes
 Enhancements
 ~~~~~~~~~~~~
 
-- Added support for multiprocessing to "trackpy.batch". (:issue:`499`)
+- Added support for multiprocessing to "trackcupy.batch". (:issue:`499`)
 
-- "trackpy.locate_brightfield_ring" enables precise tracking of large
+- "trackcupy.locate_brightfield_ring" enables precise tracking of large
   particles in bright-field microscopy. There is a new tutorial to demonstrate
   it. (:issue:`527`)
 
-- Added "trackpy.linking.link_partial" to allow linking a movie in separate 
+- Added "trackcupy.linking.link_partial" to allow linking a movie in separate 
   pieces. (:issue:`445`)
 
 - Many updates and improvements to the tutorials. Most notably, the walkthrough
-  is revised and updated for the latest versions of trackpy and pims, and code
+  is revised and updated for the latest versions of trackcupy and pims, and code
   from all tutorials should now run in recent Python environments.
   (:issue:`567`, :issue:`524`, :issue:`539`, :issue:`543`, :issue:`541`,
   :issue:`532`, :issue:`157`, :issue:`558`, :issue:`505`, :issue:`525`). Most of
-  these changes were made in the trackpy-examples repository on GitHub.
+  these changes were made in the trackcupy-examples repository on GitHub.
 
 - Smaller improvements to other documentation for the linking and
   feature-finding APIs. (:issue:`545`, :issue:`551`, :issue:`550`, 
@@ -54,7 +54,7 @@ Bug fixes
 - Removed warnings in case Pandas 0.23 is used (:issue:`503`)
 - Removed warnings in case Pandas 0.25 is used (:issue:`545`)
 
-- "trackpy.diag.dependencies" now gives information about a more complete set
+- "trackcupy.diag.dependencies" now gives information about a more complete set
   of packages.
 
 v0.4.1
@@ -87,7 +87,7 @@ v0.4.0
 ------
 
 This is a major release that includes new choices for linking and feature-finding algorithms, as well as many
-performance increases and clean-ups. It is recommended for all trackpy users, but may require
+performance increases and clean-ups. It is recommended for all trackcupy users, but may require
 minor changes to existing code, as detailed below.
 
 API Changes

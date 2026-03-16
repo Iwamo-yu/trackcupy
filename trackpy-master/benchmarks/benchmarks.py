@@ -60,8 +60,8 @@ f = DataFrame({'x': np.arange(N), 'y': np.ones(N), 'frame': np.arange(N)})
 link_one_continuous_stepper = Benchmark("mr.link(f, 5)", setup, ncalls=5,
     name='link_one_continuous_stepper')
 
-link_trackpy_one_continuous_stepper = Benchmark("mr.link_trackpy(f, 5)", 
-     setup, ncalls=5, name='link_trackpy_one_continuous_stepper')
+link_trackcupy_one_continuous_stepper = Benchmark("mr.link_trackcupy(f, 5)", 
+     setup, ncalls=5, name='link_trackcupy_one_continuous_stepper')
 
 setup = common_setup + """
 N = 500
@@ -77,8 +77,8 @@ f = pd.concat([a, b]).sort('frame')
 link_two_nearby_steppers = Benchmark("mr.link(f, 5)", setup, ncalls=5,
     name='link_two_nearby_steppers')
 
-link_trackpy_two_nearby_steppers = Benchmark("mr.link_trackpy(f, 5)", 
-     setup, ncalls=5, name='link_trackpy_two_nearby_steppers')
+link_trackcupy_two_nearby_steppers = Benchmark("mr.link_trackcupy(f, 5)", 
+     setup, ncalls=5, name='link_trackcupy_two_nearby_steppers')
 
 setup = common_setup + """
 np.random.seed(0)
@@ -100,6 +100,6 @@ f = pd.concat([walk(*pos) for pos in initial_positions])
 link_nearby_continuous_random_walks = Benchmark("mr.link(f, 5)", setup,
     ncalls=5, name='link_nearby_continuous_random_walks')
 
-link_trackpy_nearby_continuous_random_walks = \
-    Benchmark("mr.link_trackpy(f, 5)", setup,
+link_trackcupy_nearby_continuous_random_walks = \
+    Benchmark("mr.link_trackcupy(f, 5)", setup,
     ncalls=5, name='link_nearby_continuous_random_walks')

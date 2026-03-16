@@ -1,7 +1,7 @@
 # must be run in ipython
 
 import numpy as np
-import trackpy as tp
+import trackcupy as tp
 
 
 def b(command):
@@ -9,7 +9,7 @@ def b(command):
 
 
 dummy_noise_image = np.random.randint(0, 100, (100, 100))
-real_image_raw = tp.ImageSequence('../trackpy/tests/video/image_sequence')[0]
+real_image_raw = tp.ImageSequence('../trackcupy/tests/video/image_sequence')[0]
 real_image = tp.bandpass(real_image_raw, 1, 10, threshold=1)
 big_image = tp.bandpass(np.tile(real_image_raw, (2, 5)), 1, 10, threshold=1)
 

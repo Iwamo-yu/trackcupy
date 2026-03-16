@@ -1,0 +1,13 @@
+scenario,ref_engine,engine,status,ref_features,target_features,matched,match_ratio_ref,rmse_xyz,mae_z,mae_y,mae_x,mass_mare,signal_mare,raw_mass_mare,size_mare,size_z_mare,size_y_mare,size_x_mare
+iso_baseline,python,python,ok,249,249,249.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_baseline,python,numba,ok,249,249,249.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_baseline,python,cupy,FAIL_EMPTY_DETECTION,249,0,,,,,,,,,,,,,
+iso_dense,python,python,ok,248,248,248.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_dense,python,numba,ok,248,248,248.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_dense,python,cupy,FAIL_EMPTY_DETECTION,248,0,,,,,,,,,,,,,
+aniso_baseline,python,python,ok,296,296,296.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,0.0,0.0,0.0
+aniso_baseline,python,numba,ok,296,296,296.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,0.0,0.0,0.0
+aniso_baseline,python,cupy,FAIL_EMPTY_DETECTION,296,0,,,,,,,,,,,,,
+iso_large,python,python,ok,875,875,875.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_large,python,numba,ok,875,875,875.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,,
+iso_large,python,cupy,FAIL_EMPTY_DETECTION,875,0,,,,,,,,,,,,,

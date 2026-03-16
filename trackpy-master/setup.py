@@ -31,7 +31,7 @@ setup_parameters = dict(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
-    packages = ['trackpy', 'trackpy.refine', 'trackpy.linking', 'trackpy.locate_functions'],
+    packages = ['trackcupy', 'trackcupy.refine', 'trackcupy.linking', 'trackcupy.locate_functions'],
     long_description = descr,
     long_description_content_type='text/markdown'
 )

@@ -1,0 +1,3 @@
+scenario,shape,count,diameter,noise_level,seed,engine,status,cold_ms,steady_mean_ms,steady_min_ms,steady_max_ms,steady_std_ms,features,speedup_vs_python,speedup_vs_numba
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,numba,ERROR: NameError: name 'maxima' is not defined,,,,,,,,
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,cupy,ok,671.4829159900546,18.09326559305191,17.870900977868587,18.427340022753924,0.22018378566039593,3.0,,

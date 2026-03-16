@@ -55,18 +55,18 @@ Trackpy is a Python package for particle tracking in 2D, 3D, and higher dimensio
 
 For a brief introduction to the ideas behind the package, you can read the :ref:`introductory notes <introduction>`. Read the :doc:`walkthrough <tutorial/walkthrough>` to study an example project from start to finish.
 
-Much more detail can be found in the trackpy :ref:`tutorial <tutorial>`. You can also browse the :ref:`API reference <api_ref>` to see available tools for tracking, motion analysis, plotting, and more.
+Much more detail can be found in the trackcupy :ref:`tutorial <tutorial>`. You can also browse the :ref:`API reference <api_ref>` to see available tools for tracking, motion analysis, plotting, and more.
 
 See the
 :doc:`installation instructions <installation>` to obtain the current stable
 release or the version in development.
 
 To check out the code, report a bug, or contribute a new feature, please visit
-the `GitHub repository <https://github.com/soft-matter/trackpy>`_.
+the `GitHub repository <https://github.com/soft-matter/trackcupy>`_.
 
 Different versions of the documentations are available: consult the documentation
-of the current `stable <https://soft-matter.github.io/trackpy/stable/>`_
-release or the `developer <https://soft-matter.github.io/trackpy/dev/>`_ version.
+of the current `stable <https://soft-matter.github.io/trackcupy/stable/>`_
+release or the `developer <https://soft-matter.github.io/trackcupy/dev/>`_ version.
 
 .. raw:: html
 

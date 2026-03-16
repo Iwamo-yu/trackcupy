@@ -3,7 +3,7 @@ This script generates the data for the tests in test_reproducibilty.
 """
 import os
 
-import trackpy as tp
+import trackcupy as tp
 import numpy as np
 import pims
 

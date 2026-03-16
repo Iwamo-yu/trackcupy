@@ -1,6 +1,6 @@
 .. _whatsnew:
 
-.. currentmodule:: trackpy 
+.. currentmodule:: trackcupy 
 
 What's new in the package
 =========================

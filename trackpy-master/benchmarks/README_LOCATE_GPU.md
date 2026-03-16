@@ -1,6 +1,6 @@
 # 3D Locate GPU Benchmarks
 
-このディレクトリには `trackpy.locate` の3Dエンジン比較用アセットを置いています。
+このディレクトリには `trackcupy.locate` の3Dエンジン比較用アセットを置いています。
 
 ## ファイル構成
 - `locate_3d_benchmark_lib.py`

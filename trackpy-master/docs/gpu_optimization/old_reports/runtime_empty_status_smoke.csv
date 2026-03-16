@@ -1,0 +1,4 @@
+scenario,shape,count,diameter,noise_level,seed,engine,status,cold_ms,steady_mean_ms,steady_min_ms,steady_max_ms,steady_std_ms,features,speedup_vs_python,speedup_vs_numba
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,python,ok,,17.85663899499923,17.85663899499923,17.85663899499923,0.0,23.0,1.0,56.39163698761334
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,numba,ok,,1006.9651040248573,1006.9651040248573,1006.9651040248573,0.0,23.0,0.01773312592822326,1.0
+smoke_iso,"(48, 48, 24)",8,"(7, 7, 7)",10,123,cupy,ERROR: ImportError: CuPy is required for trackcupy.locate(engine='cupy').,,,,,,,,

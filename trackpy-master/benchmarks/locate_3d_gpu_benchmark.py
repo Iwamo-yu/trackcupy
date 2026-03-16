@@ -16,7 +16,7 @@ from locate_3d_benchmark_lib import (
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Benchmark trackpy.locate on synthetic 3D workloads."
+        description="Benchmark trackcupy.locate on synthetic 3D workloads."
     )
     parser.add_argument("--engines", nargs="+", default=list(DEFAULT_ENGINES))
     parser.add_argument("--scenario-set", default="default3d")

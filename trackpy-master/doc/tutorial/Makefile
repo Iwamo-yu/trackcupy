@@ -1,4 +1,4 @@
-NOTEBOOK_DIR = ../../../trackpy-examples/notebooks
+NOTEBOOK_DIR = ../../../trackcupy-examples/notebooks
 FILES := $(patsubst $(NOTEBOOK_DIR)/%,%, $(wildcard $(NOTEBOOK_DIR)/*.ipynb))
 
 notebooks:

@@ -114,12 +114,13 @@ def grey_dilation(image, separation, percentile=64, margin=None, precise=True):
 
     # The intersection of the image with its dilation gives local maxima.
     dilation = ndimage.grey_dilation(image, size, mode='constant')
-    maxima = (image == dilation) & (image > threshold)
-    if np.sum(maxima) == 0:
+    maxima_mask = (image == dilation) & (image > threshold)
+    
+    if np.sum(maxima_mask) == 0:
         warnings.warn("Image contains no local maxima.", UserWarning)
         return np.empty((0, ndim))
 
-    pos = np.vstack(np.where(maxima)).T
+    pos = np.vstack(np.where(maxima_mask)).T
 
     # Do not accept peaks near the edges.
     shape = np.array(image.shape)

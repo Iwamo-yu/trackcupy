@@ -1,5 +1,5 @@
-trackpy
-=======
+trackcupy
+=========
 
 [![Build status](https://github.com/soft-matter/trackpy/workflows/Pip/badge.svg)](https://github.com/soft-matter/trackpy/actions/)
 [![Build status](https://github.com/soft-matter/trackpy/workflows/Conda/badge.svg)](https://github.com/soft-matter/trackpy/actions/)
@@ -8,8 +8,14 @@ trackpy
 What is it?
 -----------
 
-**trackpy** is a Python package for particle tracking in 2D, 3D, and higher dimensions.
 [**Read the walkthrough**](http://soft-matter.github.io/trackpy/dev/tutorial/walkthrough.html) to skim or study an example project from start to finish.
+
+GPU Acceleration
+----------------
+
+trackcupy includes a high-performance GPU engine powered by CuPy. It is specifically optimized for 3D particle detection, offering up to **5x speedup** on large volumetric datasets compared to Numba.
+
+For more details, see the [GPU Optimization Documentation](docs/gpu_optimization/README.md).
 
 Documentation
 -------------

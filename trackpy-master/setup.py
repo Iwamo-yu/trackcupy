@@ -18,13 +18,13 @@ else:
     ext_include_dirs = [numpy.get_include(),]
 
 setup_parameters = dict(
-    name = "trackpy",
+    name = "trackcupy",
     version = versioneer.get_version(),
     cmdclass = versioneer.get_cmdclass(),
-    description = "particle-tracking toolkit",
-    author = "Trackpy Contributors",
+    description = "particle-tracking toolkit with CuPy acceleration",
+    author = "Trackpy Contributors & Iwamo-yu",
     author_email = "daniel.b.allan@gmail.com",
-    url = "https://github.com/soft-matter/trackpy",
+    url = "https://github.com/Iwamo-yu/trackcupy",
     install_requires = ['numpy>=1.18', 'scipy>=1.4', 'pandas>=1', 'pyyaml', 'matplotlib', "looseversion>=1.0.1"],
     extras_require={"test": "pytest"},
     python_requires=">=3.8",

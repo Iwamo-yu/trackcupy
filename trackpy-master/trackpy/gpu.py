@@ -1,6 +1,8 @@
 import warnings
-
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def import_cupy():
@@ -83,14 +85,69 @@ def _gaussian_kernel(sigma, truncate=4.0):
     return result / np.sum(result)
 
 
-def bandpass(image, lshort, llong, threshold=None, truncate=4):
-    """GPU variant of preprocessing.bandpass that returns a NumPy array."""
+def _boxcar_nearest(arr, size):
     cp = import_cupy()
     ndimage = _import_cupyx_ndimage()
+
+    size = _validate_tuple(size, arr.ndim)
+    if not np.all([x & 1 for x in size]):
+        raise ValueError("Smoothing size must be an odd integer. Round up.")
+
+    # CPU trackpy.preprocessing.boxcar maintains the input dtype,
+    # which leads to integer truncation for integer images.
+    # We must match this behavior to preserve accuracy.
+    src = cp.array(arr, copy=True)
+    dst = cp.empty_like(src)
+
+    for axis, width in enumerate(size):
+        if width > 1:
+            ndimage.uniform_filter1d(
+                src, width, axis=axis,
+                output=dst,
+                mode='nearest',
+                cval=0.0,
+            )
+            src, dst = dst, src
+    return src
+
+
+def _lowpass(arr, sigma, truncate, dtype=None):
+    cp = import_cupy()
+    ndimage = _import_cupyx_ndimage()
+
+    if dtype is None:
+        dtype = cp.float64
+
+    sigma = _validate_tuple(sigma, arr.ndim)
+    src = cp.array(arr, dtype=dtype, copy=True)
+    dst = cp.empty_like(src)
+
+    for axis, s in enumerate(sigma):
+        if s > 0:
+            kernel = cp.asarray(_gaussian_kernel(s, truncate), dtype=dtype)
+            ndimage.correlate1d(
+                src, kernel, axis=axis,
+                output=dst,
+                mode='constant',
+                cval=0.0,
+            )
+            src, dst = dst, src
+    return src
+
+
+def bandpass(image, lshort, llong, threshold=None, truncate=4):
+    """GPU variant of preprocessing.bandpass that returns a NumPy array."""
+    return asnumpy(gpu_bandpass(image, lshort, llong, threshold, truncate))
+
+
+def gpu_bandpass(image, lshort, llong, threshold=None, truncate=4):
+    """GPU variant of preprocessing.bandpass that returns a CuPy array."""
+    cp = import_cupy()
 
     arr = cp.asarray(image)
     lshort = _validate_tuple(lshort, arr.ndim)
     llong = _validate_tuple(llong, arr.ndim)
+
     if np.any([x >= y for (x, y) in zip(lshort, llong)]):
         raise ValueError("The smoothing length scale must be larger than " +
                          "the noise length scale.")
@@ -101,26 +158,30 @@ def bandpass(image, lshort, llong, threshold=None, truncate=4):
         else:
             threshold = 1/255.
 
-    background = arr.astype(cp.float64, copy=True)
-    for axis, size in enumerate(llong):
-        if size > 1:
-            ndimage.uniform_filter1d(background, size, axis, output=background,
-                                     mode='nearest', cval=0)
+    # Performance optimization: lowpass path can often be float32
+    # but background boxcar (integer truncation) must stay in original dtype
+    # for 1:1 accuracy alignment with CPU trackpy.
+    background = _boxcar_nearest(arr, llong)
+    
+    # We use float32 for lowpass to save bandwidth if input is not already high-precision
+    lp_dtype = cp.float32 if arr.dtype in (cp.uint8, cp.uint16, cp.float32) else cp.float64
+    result = _lowpass(arr, lshort, truncate, dtype=lp_dtype)
+    
+    result -= background.astype(lp_dtype, copy=False)
 
-    result = arr.astype(cp.float64, copy=True)
-    for axis, sigma in enumerate(lshort):
-        if sigma > 0:
-            kernel = cp.asarray(_gaussian_kernel(sigma, truncate))
-            ndimage.correlate1d(result, kernel, axis, output=result,
-                                mode='constant', cval=0.0)
+    # More memory efficient than cp.where
+    cp.copyto(result, 0.0, where=(result < threshold))
 
-    result -= background
-    result = cp.where(result >= threshold, result, 0)
-    return cp.asnumpy(result)
+    return result
 
 
 def grey_dilation(image, separation, percentile=64, margin=None, precise=False):
     """GPU variant of find.grey_dilation that returns NumPy coordinates."""
+    return asnumpy(gpu_grey_dilation(image, separation, percentile, margin, precise))
+
+
+def gpu_grey_dilation(image, separation, percentile=64, margin=None, precise=False):
+    """GPU variant of find.grey_dilation that returns CuPy coordinates."""
     cp = import_cupy()
     ndimage = _import_cupyx_ndimage()
 
@@ -133,17 +194,23 @@ def grey_dilation(image, separation, percentile=64, margin=None, precise=False):
     not_black = image[cp.nonzero(image)]
     if not_black.size == 0:
         warnings.warn("Image is completely black.", UserWarning)
-        return np.empty((0, ndim))
+        return cp.empty((0, ndim))
     threshold = cp.percentile(not_black, percentile)
-
+    
+    # Use float32 for dilation to save memory/speed if possible
+    calc_dtype = cp.float32 if image.dtype in (cp.uint8, cp.uint16, cp.float32) else cp.float64
+    image_f = image.astype(calc_dtype, copy=False)
+    
     size = [int(2 * s / np.sqrt(ndim)) for s in separation]
-    dilation = ndimage.grey_dilation(image, size=size, mode='constant')
-    maxima = (image == dilation) & (image > threshold)
-    if int(cp.sum(maxima).item()) == 0:
+    dilation = ndimage.grey_dilation(image_f, size=size, mode='constant')
+    
+    maxima_mask = (image_f == dilation) & (image_f > float(threshold))
+    
+    if int(cp.sum(maxima_mask).item()) == 0:
         warnings.warn("Image contains no local maxima.", UserWarning)
-        return np.empty((0, ndim))
+        return cp.empty((0, ndim))
 
-    pos = cp.vstack(cp.where(maxima)).T
+    pos = cp.vstack(cp.where(maxima_mask)).T
     shape = cp.asarray(image.shape)
     margin_arr = cp.asarray(margin)
     near_edge = cp.any((pos < margin_arr) | (pos > (shape - margin_arr - 1)),
@@ -152,173 +219,268 @@ def grey_dilation(image, separation, percentile=64, margin=None, precise=False):
 
     if pos.shape[0] == 0:
         warnings.warn("All local maxima were in the margins.", UserWarning)
-        return np.empty((0, ndim))
-
-    pos = cp.asnumpy(pos)
+        return cp.empty((0, ndim))
 
     if precise:
+        # precision drop_close is currently CPU-only in trackpy
+        pos_np = cp.asnumpy(pos)
         from .find import drop_close
-        peak_values = cp.asnumpy(image[tuple(cp.asarray(pos).T)])
-        pos = drop_close(pos, separation, peak_values)
+        peak_values = cp.asnumpy(image[tuple(cp.asarray(pos_np).T)])
+        pos_np = drop_close(pos_np, separation, peak_values)
+        pos = cp.asarray(pos_np)
     return pos
 
 
-def _relative_coords(radius):
-    points = [np.arange(-rad, rad + 1) for rad in radius]
-    return np.array(np.meshgrid(*points, indexing="ij"))
+_REFINE_KERNEL_SRC = r'''
+#define FULL_MASK 0xffffffff
+#define NAN_D (0.0 / 0.0)
+#define NEG_INF_D (-1.0 / 0.0)
+
+extern "C" __device__ __inline__ double warpReduceSum(double val) {
+    for (int offset = 16; offset > 0; offset /= 2)
+        val += __shfl_down_sync(FULL_MASK, val, offset);
+    return val;
+}
+
+extern "C" __device__ __inline__ double warpReduceMax(double val) {
+    for (int offset = 16; offset > 0; offset /= 2) {
+        double other = __shfl_down_sync(FULL_MASK, val, offset);
+        val = (val > other) ? val : other;
+    }
+    return val;
+}
+
+extern "C" __global__ void refine_com_arr_3d_kernel(
+    const double* raw_image, const double* image,
+    const int shape_z, const int shape_y, const int shape_x,
+    const int radius_z, const int radius_y, const int radius_x,
+    const int max_iterations, const double shift_thresh,
+    const int characterize, const int isotropic,
+    const int n_mask, const int* mask_z, const int* mask_y, const int* mask_x,
+    const double* r2_mask, const double* z2_mask, const double* y2_mask, const double* x2_mask,
+    const int* coords, const int out_cols, double* out, const int n_features)
+{
+    int feat = blockIdx.x;
+    if (feat >= n_features) return;
+
+    int lane = threadIdx.x; // Assumes blockDim.x == 32
+
+    __shared__ double s_mass[32];
+    __shared__ double s_cmz[32];
+    __shared__ double s_cmy[32];
+    __shared__ double s_cmx[32];
+    
+    // Characterization shares
+    __shared__ double s_raw[32];
+    __shared__ double s_a[32];
+    __shared__ double s_b[32];
+    __shared__ double s_c[32];
+    __shared__ double s_max[32];
+
+    int coord_z = coords[feat * 3 + 0];
+    int coord_y = coords[feat * 3 + 1];
+    int coord_x = coords[feat * 3 + 2];
+
+    double cm_i_z, cm_i_y, cm_i_x;
+    double last_mass = 0.0;
+    int last_square_z, last_square_y, last_square_x;
+
+    for (int iter = 0; iter < max_iterations; ++iter) {
+        int eval_z = coord_z;
+        int eval_y = coord_y;
+        int eval_x = coord_x;
+        int square_z = eval_z - radius_z;
+        int square_y = eval_y - radius_y;
+        int square_x = eval_x - radius_x;
+
+        double partial_mass = 0.0;
+        double partial_cmz = 0.0;
+        double partial_cmy = 0.0;
+        double partial_cmx = 0.0;
+
+        for (int i = lane; i < n_mask; i += 32) {
+            const int z = square_z + mask_z[i];
+            const int y = square_y + mask_y[i];
+            const int x = square_x + mask_x[i];
+            const long long idx = ((long long)z * shape_y + y) * shape_x + x;
+            const double px = (z >= 0 && z < shape_z && y >= 0 && y < shape_y && x >= 0 && x < shape_x) ? image[idx] : 0.0;
+            partial_mass += px;
+            partial_cmz += px * (double)mask_z[i];
+            partial_cmy += px * (double)mask_y[i];
+            partial_cmx += px * (double)mask_x[i];
+        }
+
+        s_mass[lane] = partial_mass;
+        s_cmz[lane] = partial_cmz;
+        s_cmy[lane] = partial_cmy;
+        s_cmx[lane] = partial_cmx;
+
+        double m = warpReduceSum(s_mass[lane]);
+        double mz = warpReduceSum(s_cmz[lane]);
+        double my = warpReduceSum(s_cmy[lane]);
+        double mx = warpReduceSum(s_cmx[lane]);
+
+        int done = 0;
+        if (lane == 0) {
+            s_mass[0] = m; s_cmz[0] = mz; s_cmy[0] = my; s_cmx[0] = mx;
+            
+            const double mass = m;
+            last_mass = mass;
+            last_square_z = square_z; last_square_y = square_y; last_square_x = square_x;
+
+            if (mass <= 0.0) {
+                cm_i_z = (double)eval_z; cm_i_y = (double)eval_y; cm_i_x = (double)eval_x;
+                done = 1;
+            } else {
+                const double cm_n_z = mz / mass;
+                const double cm_n_y = my / mass;
+                const double cm_n_x = mx / mass;
+
+                const double off_z = cm_n_z - (double)radius_z;
+                const double off_y = cm_n_y - (double)radius_y;
+                const double off_x = cm_n_x - (double)radius_x;
+
+                cm_i_z = off_z + (double)eval_z;
+                cm_i_y = off_y + (double)eval_y;
+                cm_i_x = off_x + (double)eval_x;
+
+                if (abs(off_z) < shift_thresh && abs(off_y) < shift_thresh && abs(off_x) < shift_thresh) {
+                    done = 1;
+                } else {
+                    if (off_z > shift_thresh) coord_z++; else if (off_z < -shift_thresh) coord_z--;
+                    if (off_y > shift_thresh) coord_y++; else if (off_y < -shift_thresh) coord_y--;
+                    if (off_x > shift_thresh) coord_x++; else if (off_x < -shift_thresh) coord_x--;
+                    
+                    coord_z = (coord_z < radius_z) ? radius_z : (coord_z > shape_z - radius_z - 1 ? shape_z - radius_z - 1 : coord_z);
+                    coord_y = (coord_y < radius_y) ? radius_y : (coord_y > shape_y - radius_y - 1 ? shape_y - radius_y - 1 : coord_y);
+                    coord_x = (coord_x < radius_x) ? radius_x : (coord_x > shape_x - radius_x - 1 ? shape_x - radius_x - 1 : coord_x);
+                }
+            }
+        }
+        done = __shfl_sync(FULL_MASK, done, 0);
+        coord_z = __shfl_sync(FULL_MASK, coord_z, 0);
+        coord_y = __shfl_sync(FULL_MASK, coord_y, 0);
+        coord_x = __shfl_sync(FULL_MASK, coord_x, 0);
+        if (done) break;
+    }
+
+    if (lane == 0) {
+        const int obase = feat * out_cols;
+        out[obase + 0] = cm_i_z;
+        out[obase + 1] = cm_i_y;
+        out[obase + 2] = cm_i_x;
+        out[obase + 3] = last_mass;
+    }
+    if (!characterize) return;
+
+    if (last_mass <= 0.0) {
+        if (lane == 0) {
+            const int obase = feat * out_cols;
+            if (isotropic) { out[obase+4]=NAN_D; out[obase+5]=NAN_D; out[obase+6]=0.0; out[obase+7]=0.0; }
+            else { out[obase+4]=NAN_D; out[obase+5]=NAN_D; out[obase+6]=NAN_D; out[obase+7]=NAN_D; out[obase+8]=0.0; out[obase+9]=0.0; }
+        }
+        return;
+    }
+
+    double p_raw = 0.0, p_a = 0.0, p_b = 0.0, p_c = 0.0, p_max = NEG_INF_D;
+    for (int i = lane; i < n_mask; i += 32) {
+        const int z = last_square_z + mask_z[i];
+        const int y = last_square_y + mask_y[i];
+        const int x = last_square_x + mask_x[i];
+        const long long idx = ((long long)z * shape_y + y) * shape_x + x;
+        const double px = (z >= 0 && z < shape_z && y >= 0 && y < shape_y && x >= 0 && x < shape_x) ? image[idx] : 0.0;
+        const double rx = (z >= 0 && z < shape_z && y >= 0 && y < shape_y && x >= 0 && x < shape_x) ? raw_image[idx] : 0.0;
+        p_raw += rx;
+        p_max = (px > p_max) ? px : p_max;
+        if (isotropic) p_a += r2_mask[i] * px;
+        else { p_a += z2_mask[i] * px; p_b += y2_mask[i] * px; p_c += x2_mask[i] * px; }
+    }
+    double m_raw = warpReduceSum(p_raw);
+    double m_a = warpReduceSum(p_a);
+    double m_b = warpReduceSum(p_b);
+    double m_c = warpReduceSum(p_c);
+    double m_max = warpReduceMax(p_max);
+
+    if (lane == 0) {
+        const int obase = feat * out_cols;
+        if (isotropic) {
+            out[obase + 4] = sqrt(m_a / last_mass);
+            out[obase + 5] = NAN_D;
+            out[obase + 6] = m_max;
+            out[obase + 7] = m_raw;
+        } else {
+            out[obase + 4] = sqrt(m_a / last_mass);
+            out[obase + 5] = sqrt(m_b / last_mass);
+            out[obase + 6] = sqrt(m_c / last_mass);
+            out[obase + 7] = NAN_D;
+            out[obase + 8] = m_max;
+            out[obase + 9] = m_raw;
+        }
+    }
+}
+'''
 
 
-def _binary_mask_np(radius):
-    coords = _relative_coords(radius)
-    terms = []
-    for coord, rad in zip(coords, radius):
-        if rad == 0:
-            terms.append((coord != 0).astype(np.float64) * np.inf)
-        else:
-            terms.append((coord / rad) ** 2)
-    return np.sum(terms, axis=0) <= 1
+def _get_refine_kernel():
+    cp = import_cupy()
+    if not hasattr(_get_refine_kernel, "_kernel"):
+        _get_refine_kernel._kernel = cp.RawKernel(
+            _REFINE_KERNEL_SRC, "refine_com_arr_3d_kernel",
+            options=("--std=c++11",)
+        )
+    return _get_refine_kernel._kernel
 
 
 def refine_com_arr_3d(raw_image, image, radius, coords, max_iterations=10,
                       shift_thresh=0.6, characterize=True):
-    """GPU-backed 3D center-of-mass refinement.
-
-    Returns
-    -------
-    np.ndarray
-        Compatible with trackpy.refine.center_of_mass.refine_com_arr output.
-    """
+    """GPU-backed 3D center-of-mass refinement using RawKernel."""
     cp = import_cupy()
 
-    raw_image = cp.asarray(raw_image)
-    image = cp.asarray(image)
-    coords = np.round(np.asarray(coords)).astype(int)
+    raw_image_cp = cp.asarray(raw_image, dtype=cp.float64)
+    image_cp = cp.asarray(image, dtype=cp.float64)
+    coords_cp = cp.asarray(coords, dtype=cp.int32)
     radius = tuple(int(v) for v in radius)
     if len(radius) != 3:
         raise NotImplementedError("CuPy refinement currently supports 3D only.")
 
-    ndim = 3
-    N = coords.shape[0]
+    n_features = coords_cp.shape[0]
+    if n_features == 0:
+        isotropic = (radius[0] == radius[1] == radius[2])
+        return np.empty((0, (8 if isotropic else 10) if characterize else 4))
+
     isotropic = (radius[0] == radius[1] == radius[2])
-    if characterize:
-        cols = 8 if isotropic else 10
-    else:
-        cols = 4
-    results = np.empty((N, cols), dtype=np.float64)
+    out_cols = (8 if isotropic else 10) if characterize else 4
+    results_cp = cp.empty((n_features, out_cols), dtype=cp.float64)
 
-    mask = _binary_mask_np(radius)
-    maskZ_idx, maskY_idx, maskX_idx = np.asarray(mask.nonzero(), dtype=np.int32)
-    maskZ_idx_cp = cp.asarray(maskZ_idx)
-    maskY_idx_cp = cp.asarray(maskY_idx)
-    maskX_idx_cp = cp.asarray(maskX_idx)
-    maskZ_idx_f = maskZ_idx_cp.astype(cp.float64)
-    maskY_idx_f = maskY_idx_cp.astype(cp.float64)
-    maskX_idx_f = maskX_idx_cp.astype(cp.float64)
+    # Prepare masks
+    from .masks import binary_mask
+    mask = binary_mask(radius, 3)
+    mask_z, mask_y, mask_x = mask.nonzero()
+    mask_z_cp = cp.asarray(mask_z.astype(np.int32))
+    mask_y_cp = cp.asarray(mask_y.astype(np.int32))
+    mask_x_cp = cp.asarray(mask_x.astype(np.int32))
 
-    rel = _relative_coords(radius)
-    z2_mask = cp.asarray((ndim * rel[0] ** 2)[mask], dtype=cp.float64)
-    y2_mask = cp.asarray((ndim * rel[1] ** 2)[mask], dtype=cp.float64)
-    x2_mask = cp.asarray((ndim * rel[2] ** 2)[mask], dtype=cp.float64)
-    r2_mask = cp.asarray((rel[0] ** 2 + rel[1] ** 2 + rel[2] ** 2)[mask],
-                         dtype=cp.float64)
+    points = [np.arange(-rad, rad + 1) for rad in radius]
+    rel = np.array(np.meshgrid(*points, indexing="ij"))
+    z2_mask_cp = cp.asarray((3 * rel[0] ** 2)[mask], dtype=cp.float64)
+    y2_mask_cp = cp.asarray((3 * rel[1] ** 2)[mask], dtype=cp.float64)
+    x2_mask_cp = cp.asarray((3 * rel[2] ** 2)[mask], dtype=cp.float64)
+    r2_mask_cp = cp.asarray((rel[0] ** 2 + rel[1] ** 2 + rel[2] ** 2)[mask],
+                            dtype=cp.float64)
 
-    upper_bound = np.asarray(image.shape) - 1 - np.asarray(radius)
-    radius_f = np.asarray(radius, dtype=np.float64)
-
-    for feat in range(N):
-        coordZ, coordY, coordX = (int(coords[feat, 0]),
-                                  int(coords[feat, 1]),
-                                  int(coords[feat, 2]))
-        cm_i = np.asarray([coordZ, coordY, coordX], dtype=np.float64)
-        px = None
-        squareZ = squareY = squareX = 0
-        mass_val = 0.0
-
-        for _ in range(max_iterations):
-            squareZ = coordZ - radius[0]
-            squareY = coordY - radius[1]
-            squareX = coordX - radius[2]
-            px = image[squareZ + maskZ_idx_cp,
-                       squareY + maskY_idx_cp,
-                       squareX + maskX_idx_cp].astype(cp.float64)
-            mass = px.sum()
-            mass_val = float(mass.item())
-            if mass_val == 0.0:
-                cm_n = radius_f.copy()
-            else:
-                cm_n = np.asarray([
-                    float((px * maskZ_idx_f).sum().item() / mass_val),
-                    float((px * maskY_idx_f).sum().item() / mass_val),
-                    float((px * maskX_idx_f).sum().item() / mass_val)
-                ], dtype=np.float64)
-
-            cm_i = cm_n - radius_f + np.asarray([coordZ, coordY, coordX],
-                                                dtype=np.float64)
-            off = cm_n - radius_f
-            if np.all(np.abs(off) < shift_thresh):
-                break
-
-            if off[0] > shift_thresh:
-                coordZ += 1
-            elif off[0] < -shift_thresh:
-                coordZ -= 1
-            if off[1] > shift_thresh:
-                coordY += 1
-            elif off[1] < -shift_thresh:
-                coordY -= 1
-            if off[2] > shift_thresh:
-                coordX += 1
-            elif off[2] < -shift_thresh:
-                coordX -= 1
-
-            coordZ = int(np.clip(coordZ, radius[0], upper_bound[0]))
-            coordY = int(np.clip(coordY, radius[1], upper_bound[1]))
-            coordX = int(np.clip(coordX, radius[2], upper_bound[2]))
-
-        results[feat, 0:3] = cm_i
-        results[feat, 3] = mass_val
-        if not characterize:
-            continue
-
-        if px is None:
-            px = image[squareZ + maskZ_idx_cp,
-                       squareY + maskY_idx_cp,
-                       squareX + maskX_idx_cp].astype(cp.float64)
-
-        if mass_val == 0.0:
-            if isotropic:
-                results[feat, 4] = np.nan
-                results[feat, 5] = np.nan
-                results[feat, 6] = np.nan
-                results[feat, 7] = 0.0
-            else:
-                results[feat, 4:7] = np.nan
-                results[feat, 7] = np.nan
-                results[feat, 8] = 0.0
-                results[feat, 9] = 0.0
-            continue
-
-        raw_px = raw_image[squareZ + maskZ_idx_cp,
-                           squareY + maskY_idx_cp,
-                           squareX + maskX_idx_cp].astype(cp.float64)
-        signal = float(px.max().item())
-        raw_mass = float(raw_px.sum().item())
-
-        if isotropic:
-            rg = float(cp.sqrt((r2_mask * px).sum() / mass_val).item())
-            results[feat, 4] = rg
-            results[feat, 5] = np.nan  # 3D ecc is undefined
-            results[feat, 6] = signal
-            results[feat, 7] = raw_mass
-        else:
-            rgz = float(cp.sqrt((z2_mask * px).sum() / mass_val).item())
-            rgy = float(cp.sqrt((y2_mask * px).sum() / mass_val).item())
-            rgx = float(cp.sqrt((x2_mask * px).sum() / mass_val).item())
-            results[feat, 4] = rgz
-            results[feat, 5] = rgy
-            results[feat, 6] = rgx
-            results[feat, 7] = np.nan  # 3D ecc is undefined
-            results[feat, 8] = signal
-            results[feat, 9] = raw_mass
-
-    return results
+    kernel = _get_refine_kernel()
+    shape = image_cp.shape
+    
+    kernel(
+        (n_features,), (32,),
+        (raw_image_cp, image_cp,
+         shape[0], shape[1], shape[2],
+         radius[0], radius[1], radius[2],
+         max_iterations, float(shift_thresh),
+         int(characterize), int(isotropic),
+         mask_z_cp.size, mask_z_cp, mask_y_cp, mask_x_cp,
+         r2_mask_cp, z2_mask_cp, y2_mask_cp, x2_mask_cp,
+         coords_cp.ravel(), out_cols, results_cp.ravel(), n_features)
+    )
+    
+    return cp.asnumpy(results_cp)

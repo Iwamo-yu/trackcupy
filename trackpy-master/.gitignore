@@ -49,3 +49,6 @@ soft-matter-docs-deploy
 # VS Code
 .vscode
 .venv
+.venv-linux
+benchmarks/results/*
+!benchmarks/results/.gitkeep

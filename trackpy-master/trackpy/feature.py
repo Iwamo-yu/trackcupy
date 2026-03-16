@@ -385,12 +385,17 @@ def locate(raw_image, diameter, minmass=None, maxsize=None, separation=None,
         image = raw_image
 
     # For optimal performance, performance, coerce the image dtype to integer.
-    if is_float_image:  # For float images, assume bitdepth of 8.
-        dtype = np.uint8
-    else:   # For integer images, take original dtype
-        dtype = raw_image.dtype
-    # Normalize_to_int does nothing if image is already of integer type.
-    scale_factor, image = convert_to_int(image, dtype)
+    if engine == 'cupy':
+        # For GPU, we keep everything in float to avoid host-device synchronization
+        # and preserve precision. Custom kernels handle float images natively.
+        scale_factor = 1.0
+    else:
+        if is_float_image:  # For float images, assume bitdepth of 8.
+            dtype = np.uint8
+        else:   # For integer images, take original dtype
+            dtype = raw_image.dtype
+        # Normalize_to_int does nothing if image is already of integer type.
+        scale_factor, image = convert_to_int(image, dtype)
 
     pos_columns = default_pos_columns(image.ndim)
 

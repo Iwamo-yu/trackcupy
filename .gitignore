@@ -48,7 +48,20 @@ soft-matter-docs-deploy
 
 # VS Code
 .vscode
-.venv
-.venv-*
+# Environments
+.venv/
+.venv*/
+env/
+venv/
+ENV/
+*.env
+*.venv
+
+# Conda
+.conda/
+conda-bld/
+anaconda/
+miniconda/
+
 benchmarks/results/*
 !benchmarks/results/.gitkeep

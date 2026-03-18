@@ -3,10 +3,6 @@ trackcupy
 
 trackcupy is a high-performance, GPU-accelerated fork of [trackpy](https://github.com/soft-matter/trackpy).
 
-[![Build status](https://github.com/soft-matter/trackpy/workflows/Pip/badge.svg)](https://github.com/soft-matter/trackpy/actions/)
-[![Build status](https://github.com/soft-matter/trackpy/workflows/Conda/badge.svg)](https://github.com/soft-matter/trackpy/actions/)
-[![DOI](https://zenodo.org/badge/4744355.svg)](https://zenodo.org/badge/latestdoi/4744355)
-
 What is it?
 -----------
 
